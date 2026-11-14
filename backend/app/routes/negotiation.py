@@ -51,6 +51,13 @@ async def start_negotiation(request: NegotiationStartRequest) -> NegotiationStar
             detail=f"Negotiation service unavailable: {err_msg}"
         )
 
+    except (TimeoutError, asyncio.TimeoutError) as timeout_err:
+        logger.error(f"Negotiation request timed out: {timeout_err}")
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Negotiation timed out waiting for AI agents. Please try again with a competitive opening offer or adjust budget."
+        )
+
     except Exception as exc:
         logger.exception("Unexpected error in start_negotiation")
         raise HTTPException(

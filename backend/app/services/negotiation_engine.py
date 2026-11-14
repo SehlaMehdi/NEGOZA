@@ -1,4 +1,7 @@
+import asyncio
 import logging
+import os
+import time
 import uuid
 from typing import List, Optional, Dict, Any
 
@@ -53,6 +56,9 @@ class NegotiationEngine:
         target_buyer_price = min(req.target_price, max_buyer_price)
 
         transcript: List[NegotiationRoundRecord] = []
+        start_time = time.time()
+        total_timeout_budget = float(os.getenv("NEGOTIATION_TIMEOUT_SECONDS", "70.0"))
+
         final_agreed_price: Optional[float] = None
         final_delivery_terms: Optional[str] = None
         final_status: str = "in_progress"
@@ -160,6 +166,22 @@ class NegotiationEngine:
             last_seller_conditions = seller_resp.conditions
 
             while current_round < max_rounds:
+                # Check remaining time budget before initiating another round of Gemini agent calls
+                elapsed = time.time() - start_time
+                if elapsed >= (total_timeout_budget - 18.0):
+                    logger.warning(
+                        f"Negotiation [{negotiation_id}] approaching timeout budget "
+                        f"({elapsed:.1f}s / {total_timeout_budget}s). Ending multi-round loop gracefully."
+                    )
+                    final_status = "maximum_rounds_reached"
+                    summary = (
+                        f"Negotiation concluded after {current_round} rounds within time budget. "
+                        f"Final Buyer offer: ${buyer_price:.2f} vs Final Seller offer: ${last_seller_offer:.2f}."
+                    )
+                    return self._build_response(
+                        negotiation_id, req, merchant_id, merchant_name, None, None, current_round, final_status, summary, transcript
+                    )
+
                 current_round += 1
 
                 # Step A: Buyer Agent evaluates Seller's counteroffer
