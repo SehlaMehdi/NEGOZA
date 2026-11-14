@@ -1,6 +1,8 @@
 # NEGOZA
 ### Your AI Agent Negotiates. You Approve. It Buys.
 
+🌐 **Live Demo:** [https://negoza-frontend.onrender.com](https://negoza-frontend.onrender.com)
+
 NEGOZA is an AI-powered autonomous shopping agent designed to help users negotiate better deals while discovering products online.
 
 Instead of manually visiting multiple stores, comparing prices and negotiating with sellers, users can delegate the shopping negotiation process to their personal AI agent.
